@@ -6,22 +6,22 @@ from src.letter_model import LetterSkeleton
 from src.base_letters import CanonicalLetters
 
 # ==========================================
-# מדד מרחק - SSIM
+# SSIM Function
 # ==========================================
 
 def get_similarity(img1, img2):
     """
     SSIM - Structural Similarity Index
-    מחזיר ציון בין 0 ל-1 (1 = זהה)
+    RANGE: -1 to 1 (1 means identical)  
     """
     return ssim(img1, img2, data_range=img1.max() - img1.min())
 
 # ==========================================
-# יצירת אותיות בסיסיות
+# Create Base Letters
 # ==========================================
 
 def create_base_letters():
-    """יוצר את שלוש האותיות הבסיסיות"""
+    """Creates the three basic letters"""
     model = LetterSkeleton(size=(200, 200))
     
     CanonicalLetters.draw_A(model)
@@ -36,43 +36,43 @@ def create_base_letters():
     return {'A': base_A, 'B': base_B, 'C': base_C}
 
 # ==========================================
-# יצירת אותיות עם עיוות מקסימלי
+# Create Max Deformed Letters
 # ==========================================
 
 def create_max_deformed_letters():
-    """יוצר את שלוש האותיות עם עיוות מקסימלי"""
+    """Creates the three letters with maximum deformation"""
     model = LetterSkeleton(size=(200, 200))
     
-    # A עם עיוות מקסימלי
+    # A with maximum deformation
     CanonicalLetters.draw_A(model, 
-                            top_width=140,           # ראש עגול מאוד
-                            base_width_factor=2.0,   # רגליים רחבות
-                            crossbar_h_shift=50)     # קו אמצעי למטה
+                            top_width=140,           # Very round head  
+                            base_width_factor=2.0,   # Very wide legs
+                            crossbar_h_shift=50)     # Crossbar shifted down
     deformed_A = model.apply_morphology(thickness=6).copy()
     
-    # B עם עיוות מקסימלי
+    # B with maximum deformation
     CanonicalLetters.draw_B(model,
-                            width_factor=0.5,        # רזה מאוד
-                            waist_y_shift=40,        # מותן למטה
-                            rotation_deg=-35)        # מוטה
+                            width_factor=0.5,        # Very thin
+                            waist_y_shift=40,        # Waist shifted down
+                            rotation_deg=-35)        # Rotated
     deformed_B = model.apply_morphology(thickness=6).copy()
     
-    # C עם עיוות מקסימלי
+    # C with maximum deformation
     CanonicalLetters.draw_C(model,
-                            cut_top=-40,             # סגורה
-                            cut_bottom=-40,          # סגורה
-                            elongation_factor=1.6,   # מעוכה
-                            rotation_deg=60)         # מסובבת
+                            cut_top=-40,             # Closed
+                            cut_bottom=-40,          # Closed
+                            elongation_factor=1.6,   # Squished
+                            rotation_deg=60)         # Rotated
     deformed_C = model.apply_morphology(thickness=6).copy()
     
     return {'A': deformed_A, 'B': deformed_B, 'C': deformed_C}
 
 # ==========================================
-# יצירת מטריצת SSIM
+# SSIM Matrix Creation
 # ==========================================
 
 def create_ssim_matrix(letters_dict):
-    """יוצר מטריצת SSIM מתוך מילון אותיות"""
+    """Creates an SSIM matrix from a dictionary of letters"""
     letters = list(letters_dict.keys())
     n = len(letters)
     matrix = np.zeros((n, n))
@@ -84,23 +84,23 @@ def create_ssim_matrix(letters_dict):
     return matrix
 
 # ==========================================
-# השוואה בין אותיות מקוריות
+# Compare Original Letters
 # ==========================================
 
 def compare_original_letters(base_letters, output_dir):
-    """משווה בין אותיות מקוריות"""
+    """Compares original letters"""
     print("\n📊 Comparing Original Letters...")
     
     letters = list(base_letters.keys())
     n = len(letters)
     
     original_matrix = create_ssim_matrix(base_letters)
-    
-    # יצירת ויזואליזציה
+
+    # Create Visualization
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle("Inter-letter Comparison: Original Letters (SSIM)", fontsize=16)
-    
-    # תמונות
+
+    # Images
     axes[0].axis('off')
     axes[0].set_title("Original Letters", fontsize=14, fontweight='bold')
     for idx, letter in enumerate(letters):
@@ -108,8 +108,8 @@ def compare_original_letters(base_letters, output_dir):
         ax_small.imshow(base_letters[letter], cmap='gray')
         ax_small.set_title(f"{letter}", fontsize=14, fontweight='bold')
         ax_small.axis('off')
-    
-    # מטריצה
+
+    # Matrix
     im = axes[1].imshow(original_matrix, cmap='RdYlGn', vmin=0, vmax=1)
     axes[1].set_title("SSIM Matrix - Original", fontsize=14)
     axes[1].set_xticks(range(n))
@@ -130,23 +130,23 @@ def compare_original_letters(base_letters, output_dir):
     return original_matrix
 
 # ==========================================
-# השוואה בין אותיות מעוותות
+# Compare Deformed Letters
 # ==========================================
 
 def compare_deformed_letters(deformed_letters, output_dir):
-    """משווה בין אותיות מעוותות"""
+    """Compares deformed letters"""
     print("\n📊 Comparing Max Deformed Letters...")
     
     letters = list(deformed_letters.keys())
     n = len(letters)
     
     deformed_matrix = create_ssim_matrix(deformed_letters)
-    
-    # יצירת ויזואליזציה
+
+    # Create Visualization
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle("Inter-letter Comparison: Max Deformed Letters (SSIM)", fontsize=16)
-    
-    # תמונות
+
+    # Images
     axes[0].axis('off')
     axes[0].set_title("Max Deformed Letters", fontsize=14, fontweight='bold')
     for idx, letter in enumerate(letters):
@@ -154,8 +154,8 @@ def compare_deformed_letters(deformed_letters, output_dir):
         ax_small.imshow(deformed_letters[letter], cmap='gray')
         ax_small.set_title(f"{letter}'", fontsize=14, fontweight='bold')
         ax_small.axis('off')
-    
-    # מטריצה
+
+    # Matrix
     im = axes[1].imshow(deformed_matrix, cmap='RdYlGn', vmin=0, vmax=1)
     axes[1].set_title("SSIM Matrix - Max Deformed", fontsize=14)
     axes[1].set_xticks(range(n))
@@ -180,21 +180,21 @@ def compare_deformed_letters(deformed_letters, output_dir):
 # ==========================================
 
 def run_inter_letter_analysis(output_dir='analysis'):
-    """מריץ ניתוח השוואה בין אותיות שונות"""
+    """Runs inter-letter comparison analysis"""
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
     print("🚀 Starting Inter-letter Analysis...")
-    
-    # יצירת אותיות
+
+    # Create Letters
     base_letters = create_base_letters()
     deformed_letters = create_max_deformed_letters()
-    
-    # השוואה בין מקוריות
+
+    # Compare Original Letters
     compare_original_letters(base_letters, output_dir)
-    
-    # השוואה בין מעוותות
+
+    # Compare Deformed Letters
     compare_deformed_letters(deformed_letters, output_dir)
     
     print("\n✅ Inter-letter Analysis Complete!")

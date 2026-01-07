@@ -1,0 +1,34 @@
+# Dictionary defining parameter limits and defaults for letter deformation
+# For each letter (A, B, C), we define parameters with:
+# 1. Minimum value (min)
+# 2. Maximum value (max)
+# 3. Default value (default)
+
+PARAM_CONFIG = {
+    'A': {
+        'base_width_factor': {'min': 0.5, 'max': 1.8, 'default': 1.0},
+        'top_width':         {'min': 0,   'max': 100, 'default': 0},
+        'crossbar_h_shift':  {'min': -40, 'max': 40,  'default': 0},
+        'shear_x':           {'min': -40, 'max': 40,  'default': 0},
+        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+    },
+    'B': {
+        'width_factor':      {'min': 0.6, 'max': 1.6, 'default': 1.0},
+        'waist_y_shift':     {'min': -30, 'max': 30,  'default': 0},
+        'rotation_deg':      {'min': -20, 'max': 20,  'default': 0},
+        'vertical_squash':   {'min': 0.4, 'max': 1.0, 'default': 1.0},
+        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+    },
+    'C': {
+        'cut_top':           {'min': -20, 'max': 80,  'default': 40},
+        'vertical_squash':   {'min': 0.4, 'max': 1.0, 'default': 1.0},
+        'rotation_deg':      {'min': -30, 'max': 30,  'default': 0},
+        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+    }
+}
+
+def get_limits(letter, param):
+    """Helper function to retrieve limits in a convenient way"""
+    if letter in PARAM_CONFIG and param in PARAM_CONFIG[letter]:
+        return PARAM_CONFIG[letter][param]
+    return None

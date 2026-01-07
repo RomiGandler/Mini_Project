@@ -5,7 +5,7 @@ from src.letter_model import LetterSkeleton
 from src.base_letters import CanonicalLetters
 
 def generate_combination_row(model, letter_func, param1_name, param1_val, param2_name, param2_range):
-    """מייצרת שורה של תמונות עם פרמטר אחד קבוע והשני משתנה"""
+    """Generate a row of images with one parameter fixed and the other varying"""
     images = []
     labels = []
     
@@ -20,8 +20,8 @@ def generate_combination_row(model, letter_func, param1_name, param1_val, param2
 
 def create_combination_table(letter_name, letter_func, combinations, output_filename, cols=10):
     """
-    יוצרת טבלה של קומבינציות
-    combinations: רשימה של tuples: (שם_פרמטר1, ערך1, שם_פרמטר2, טווח2, שם_תצוגה)
+    Create a table of combinations
+    combinations: List of tuples: (param1_name, param1_value, param2_name, param2_range, display_name)
     """
     model = LetterSkeleton(size=(200, 200))
     
@@ -55,52 +55,52 @@ def create_combination_table(letter_name, letter_func, combinations, output_file
 def main():
     if not os.path.exists('combinations'):
         os.makedirs('combinations')
-    
-    # === קומבינציות לאות A ===
-    # פרמטרים: top_width, crossbar_h_shift, base_width_factor
+
+    # === Combinations for Letter A ===
+    # Parameters: top_width, crossbar_h_shift, base_width_factor
     a_combinations = [
-        # עיגול + רוחב רגליים
+        # Round + Base Width
         ('top_width', 0, 'base_width_factor', [0.4, 0.6, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.4], 'Round=0\n+Width'),
         ('top_width', 60, 'base_width_factor', [0.4, 0.6, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.4], 'Round=60\n+Width'),
         ('top_width', 120, 'base_width_factor', [0.4, 0.6, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.4], 'Round=120\n+Width'),
-        # עיגול + הזזת קו
+        # Round + Crossbar Shift
         ('top_width', 0, 'crossbar_h_shift', [-50, -35, -20, -10, 0, 10, 20, 35, 50, 60], 'Round=0\n+Bar'),
         ('top_width', 60, 'crossbar_h_shift', [-50, -35, -20, -10, 0, 10, 20, 35, 50, 60], 'Round=60\n+Bar'),
         ('top_width', 120, 'crossbar_h_shift', [-50, -35, -20, -10, 0, 10, 20, 35, 50, 60], 'Round=120\n+Bar'),
-        # רוחב + הזזת קו
+        # Width + Crossbar Shift
         ('base_width_factor', 0.5, 'crossbar_h_shift', [-50, -35, -20, -10, 0, 10, 20, 35, 50, 60], 'Width=0.5\n+Bar'),
         ('base_width_factor', 1.5, 'crossbar_h_shift', [-50, -35, -20, -10, 0, 10, 20, 35, 50, 60], 'Width=1.5\n+Bar'),
     ]
     create_combination_table('A', CanonicalLetters.draw_A, a_combinations, 'combinations/table_A_combinations.png')
     
-    # === קומבינציות לאות B ===
-    # פרמטרים: waist_y_shift, width_factor, rotation_deg
+    # === Combinations for Letter B ===
+    # Parameters: waist_y_shift, width_factor, rotation_deg
     b_combinations = [
-        # מותן + רוחב
+        # Waist + Width
         ('waist_y_shift', -30, 'width_factor', [0.4, 0.6, 0.8, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8], 'Waist=-30\n+Width'),
         ('waist_y_shift', 0, 'width_factor', [0.4, 0.6, 0.8, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8], 'Waist=0\n+Width'),
         ('waist_y_shift', 30, 'width_factor', [0.4, 0.6, 0.8, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8], 'Waist=30\n+Width'),
-        # מותן + סיבוב
+        # Waist + Rotation
         ('waist_y_shift', -30, 'rotation_deg', [-35, -25, -15, -5, 0, 5, 15, 25, 35, 40], 'Waist=-30\n+Rot'),
         ('waist_y_shift', 0, 'rotation_deg', [-35, -25, -15, -5, 0, 5, 15, 25, 35, 40], 'Waist=0\n+Rot'),
         ('waist_y_shift', 30, 'rotation_deg', [-35, -25, -15, -5, 0, 5, 15, 25, 35, 40], 'Waist=30\n+Rot'),
-        # רוחב + סיבוב
+        # Width + Rotation
         ('width_factor', 0.6, 'rotation_deg', [-35, -25, -15, -5, 0, 5, 15, 25, 35, 40], 'Width=0.6\n+Rot'),
         ('width_factor', 1.8, 'rotation_deg', [-35, -25, -15, -5, 0, 5, 15, 25, 35, 40], 'Width=1.8\n+Rot'),
     ]
     create_combination_table('B', CanonicalLetters.draw_B, b_combinations, 'combinations/table_B_combinations.png')
-    
-    # === קומבינציות לאות C ===
-    # פרמטרים: cut_top, cut_bottom, elongation_factor, rotation_deg
+
+    # === Combinations for Letter C ===
+    # Parameters: cut_top, cut_bottom, elongation_factor, rotation_deg
     c_combinations = [
-        # חיתוך עליון + מתיחה
+        # Cut Top + Elongation
         ('cut_top', -30, 'elongation_factor', [0.5, 0.7, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2], 'CutTop=-30\n+Elong'),
         ('cut_top', 40, 'elongation_factor', [0.5, 0.7, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2], 'CutTop=40\n+Elong'),
         ('cut_top', 80, 'elongation_factor', [0.5, 0.7, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2], 'CutTop=80\n+Elong'),
-        # חיתוך עליון + סיבוב
+        # Cut Top + Rotation
         ('cut_top', -30, 'rotation_deg', [-60, -40, -20, -10, 0, 10, 20, 40, 60, 80], 'CutTop=-30\n+Rot'),
         ('cut_top', 40, 'rotation_deg', [-60, -40, -20, -10, 0, 10, 20, 40, 60, 80], 'CutTop=40\n+Rot'),
-        # מתיחה + סיבוב
+        # Elongation + Rotation
         ('elongation_factor', 0.6, 'rotation_deg', [-60, -40, -20, -10, 0, 10, 20, 40, 60, 80], 'Elong=0.6\n+Rot'),
         ('elongation_factor', 1.0, 'rotation_deg', [-60, -40, -20, -10, 0, 10, 20, 40, 60, 80], 'Elong=1.0\n+Rot'),
         ('elongation_factor', 1.6, 'rotation_deg', [-60, -40, -20, -10, 0, 10, 20, 40, 60, 80], 'Elong=1.6\n+Rot'),
