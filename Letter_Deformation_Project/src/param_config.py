@@ -6,45 +6,45 @@
 
 PARAM_CONFIG = {
     'A': {
-        'base_width_factor': {'min': 0.5, 'max': 1.8, 'default': 1.0},
-        'top_width':         {'min': 0,   'max': 100, 'default': 0},
-        'crossbar_h_shift':  {'min': -40, 'max': 40,  'default': 0},
-        'shear_x':           {'min': -40, 'max': 40,  'default': 0},
-        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+        'base_width_factor': {'min': 1.0, 'max': 1.8, 'default': 1.0},
+        'top_width':         {'min': 0,   'max': 100,  'default': 0},
+        'crossbar_h_shift':  {'min': -30,   'max': 40,  'default': 0},
+        'shear_x':           {'min': 0,   'max': 35,  'default': 0},
+        'thickness':         {'min': 6,   'max': 18,  'default': 6}
     },
     'B': {
-        'width_factor':      {'min': 0.6, 'max': 1.6, 'default': 1.0},
-        'waist_y_shift':     {'min': -30, 'max': 30,  'default': 0},
-        'rotation_deg':      {'min': -20, 'max': 20,  'default': 0},
+        'width_factor':      {'min': 0.5, 'max': 1.0, 'default': 1.0},
+        'waist_y_shift':     {'min': 0,   'max': 40,  'default': 0},
+        'rotation_deg':      {'min': -30, 'max': 0,   'default': 0},
         'vertical_squash':   {'min': 0.4, 'max': 1.0, 'default': 1.0},
-        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+        'thickness':         {'min': 6,   'max': 18,  'default': 6}
     },
     'C': {
-        'cut_top':           {'min': -20, 'max': 80,  'default': 40},
-        'vertical_squash':   {'min': 0.4, 'max': 1.0, 'default': 1.0},
-        'rotation_deg':      {'min': -30, 'max': 30,  'default': 0},
-        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+        'cut_top':           {'min': -60, 'max': 40,  'default': 40},
+        'vertical_squash':   {'min': 0.45,'max': 1.0, 'default': 1.0},
+        'rotation_deg':      {'min': 0,   'max': 45,  'default': 0},
+        'thickness':         {'min': 6,   'max': 18,  'default': 6}
     },
     'F': {
-        'bar_length':        {'min': 0.5, 'max': 1.5, 'default': 1.0},
-        'middle_bar_shift':  {'min': -30, 'max': 30,  'default': 0},
+        'bar_length':        {'min': 1.0, 'max': 2.0, 'default': 1.0},
+        'middle_bar_shift':  {'min': -30, 'max': 40,  'default': 0},
         'shear_x':           {'min': -30, 'max': 30,  'default': 0},
         'spine_height':      {'min': 0.6, 'max': 1.2, 'default': 1.0},
-        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+        'thickness':         {'min': 6,   'max': 18,  'default': 6}
     },
     'X': {
         'cross_ratio':       {'min': 0.3, 'max': 0.7, 'default': 0.5},
-        'spread_angle':      {'min': -20, 'max': 20,  'default': 0},
+        'spread_angle':      {'min': -30, 'max': 30,  'default': 0},
         'rotation_deg':      {'min': -30, 'max': 30,  'default': 0},
-        'asymmetry':         {'min': -20, 'max': 20,  'default': 0},
-        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+        'asymmetry':         {'min': -30, 'max': 30,  'default': 0},
+        'thickness':         {'min': 6,   'max': 18,  'default': 6}
     },
     'W': {
-        'peak_depth':        {'min': 0.3, 'max': 0.9, 'default': 0.7},
-        'width_factor':      {'min': 0.6, 'max': 1.4, 'default': 1.0},
-        'middle_height':     {'min': 0.3, 'max': 0.8, 'default': 0.5},
+        'peak_depth':        {'min': 0.5, 'max': 0.9, 'default': 0.7},
+        'width_factor':      {'min': 0.3, 'max': 1.4, 'default': 1.0},
+        'middle_height':     {'min': 0.3, 'max': 1.0, 'default': 0.5},
         'shear_x':           {'min': -25, 'max': 25,  'default': 0},
-        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+        'thickness':         {'min': 6,   'max': 18,  'default': 6}
     }
 }
 

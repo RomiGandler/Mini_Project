@@ -1,7 +1,6 @@
 import numpy as np
 import math
 
-
 class CanonicalLetters:
 
     # ==========================================
@@ -22,7 +21,7 @@ class CanonicalLetters:
         return int(new_x), int(new_y)
 
     # ==========================================
-    # LETTER A (unchanged)
+    # LETTER A 
     # ==========================================
     @staticmethod
     def draw_A(skeleton, top_width=0, crossbar_h_shift=0,
@@ -42,10 +41,10 @@ class CanonicalLetters:
             factor = (BOTTOM_Y - y) / HEIGHT
             return max(5, min(195, int(x + shear_x * factor))), y
 
-        bl = shear(CENTER_X - base_width // 2, BOTTOM_Y)
-        br = shear(CENTER_X + base_width // 2, BOTTOM_Y)
-        tl = shear(CENTER_X - top_width // 2, TOP_Y)
-        tr = shear(CENTER_X + top_width // 2, TOP_Y)
+        bl = shear(CENTER_X - base_width // 2, BOTTOM_Y) # Bottom Left
+        br = shear(CENTER_X + base_width // 2, BOTTOM_Y) # Bottom Right
+        tl = shear(CENTER_X - top_width // 2, TOP_Y)     # Top Left
+        tr = shear(CENTER_X + top_width // 2, TOP_Y)     # Top Right
 
         skeleton.draw_line(bl, tl, thickness)
         skeleton.draw_line(br, tr, thickness)
@@ -55,11 +54,20 @@ class CanonicalLetters:
 
         bar_y = (TOP_Y + BOTTOM_Y) // 2 - crossbar_h_shift
         bar_y = max(TOP_Y + 20, min(BOTTOM_Y - 25, bar_y))
+    
+        total_h = BOTTOM_Y - TOP_Y
+        if total_h == 0: total_h = 1 
+        
+        ratio = (bar_y - TOP_Y) / total_h 
 
-        skeleton.draw_line((tl[0], bar_y), (tr[0], bar_y), thickness)
+        bar_left_x = tl[0] + (bl[0] - tl[0]) * ratio
+        bar_right_x = tr[0] + (br[0] - tr[0]) * ratio
+
+        skeleton.draw_line((int(bar_left_x), bar_y), (int(bar_right_x), bar_y), thickness)
+
 
     # ==========================================
-    # LETTER B (unchanged)
+    # LETTER B 
     # ==========================================
     @staticmethod
     def draw_B(skeleton, width_factor=1.0, waist_y_shift=0,
@@ -103,7 +111,7 @@ class CanonicalLetters:
         )
 
     # ==========================================
-    # LETTER C (unchanged)
+    # LETTER C 
     # ==========================================
     @staticmethod
     def draw_C(skeleton, rotation_deg=0, cut_top=0,
@@ -115,17 +123,20 @@ class CanonicalLetters:
         CENTER_Y = 100
         R = 75
 
+        start_angle = 45 + cut_bottom
+        end_angle = 315 - cut_top
+
         skeleton.draw_curve(
             center=(CENTER_X, CENTER_Y),
             axes=(R, int(R * vertical_squash)),
             angle=rotation_deg,
-            start_angle=45,
-            end_angle=315 - cut_top,
+            start_angle=start_angle, 
+            end_angle=end_angle,
             thickness=thickness
         )
 
     # ==========================================
-    # 🔥 LETTER F — EXTREME
+    # LETTER F 
     # ==========================================
     @staticmethod
     def draw_F(skeleton, bar_length=1.0, middle_bar_shift=0,
@@ -140,10 +151,11 @@ class CanonicalLetters:
         bar_len = int(90 * bar_length)
 
         def shear(x, y):
-            factor = (bottom_y - y) / HEIGHT
-            return max(5, min(195, int(x + shear_x * factor * factor))), y
+            factor = (bottom_y - y) / HEIGHT if HEIGHT != 0 else 0
+            return max(5, min(195, int(x + shear_x * factor))), y
 
         skeleton.draw_line(shear(LEFT_X, TOP_Y), shear(LEFT_X, bottom_y), thickness)
+        
         skeleton.draw_line(shear(LEFT_X, TOP_Y), shear(LEFT_X + bar_len, TOP_Y), thickness)
 
         mid_y = TOP_Y + int(HEIGHT * 0.45) + middle_bar_shift
@@ -154,36 +166,53 @@ class CanonicalLetters:
         )
 
     # ==========================================
-    # 🔥 LETTER X — SCALE + ROTATION
+    # LETTER X
     # ==========================================
     @staticmethod
-    def draw_X(skeleton, spread_angle=0, rotation_deg=0,
-               asymmetry=0, scale=1.0, thickness=6, **kwargs):
+    def draw_X(skeleton, cross_ratio=0.5, spread_angle=0, rotation_deg=0,
+               asymmetry=0, thickness=6, **kwargs):
 
         skeleton.clear()
+        center_x, center_y = 100, 100
+        
+        # 1. Base Width calculation
+        # spread_angle adds to the width (range -20 to 20 approx)
+        base_half_width = 50 + (spread_angle * 1.5)
+        
+        # 2. Adjust Top vs Bottom width based on cross_ratio
+        # ratio 0.5 -> Equal widths
+        # ratio < 0.5 -> Top narrower (cross moves up)
+        # ratio > 0.5 -> Top wider (cross moves down)
+        top_scale = cross_ratio * 2.0
+        bot_scale = (1.0 - cross_ratio) * 2.0
+        
+        # Calculate X coordinates relative to center
+        # We clamp scales slightly to prevent width becoming 0
+        w_top = int(base_half_width * max(0.2, top_scale))
+        w_bot = int(base_half_width * max(0.2, bot_scale))
+        
+        # Define the 4 corners
+        # Top-Left, Top-Right (Shifted by asymmetry)
+        tl = (center_x - w_top, 30)
+        tr = (center_x + w_top + int(asymmetry), 30)
+        
+        # Bottom-Left, Bottom-Right (Shifted by asymmetry)
+        bl = (center_x - w_bot + int(asymmetry), 170)
+        br = (center_x + w_bot, 170)
 
-        CX, CY = 100, 100
-        TOP, BOT = 30, 170
-        base = 45 + spread_angle
+        # 3. Apply Rotation (Optional)
+        if rotation_deg != 0:
+            tl = CanonicalLetters._rotate_point(*tl, center_x, center_y, rotation_deg)
+            tr = CanonicalLetters._rotate_point(*tr, center_x, center_y, rotation_deg)
+            bl = CanonicalLetters._rotate_point(*bl, center_x, center_y, rotation_deg)
+            br = CanonicalLetters._rotate_point(*br, center_x, center_y, rotation_deg)
 
-        def scale_pt(x, y):
-            return int(CX + (x-CX)*scale), int(CY + (y-CY)*scale)
-
-        tl = scale_pt(CX - base - asymmetry, TOP)
-        tr = scale_pt(CX + base + asymmetry, TOP)
-        bl = scale_pt(CX - base, BOT)
-        br = scale_pt(CX + base, BOT)
-
-        tl = CanonicalLetters._rotate_point(*tl, CX, CY, rotation_deg)
-        tr = CanonicalLetters._rotate_point(*tr, CX, CY, rotation_deg)
-        bl = CanonicalLetters._rotate_point(*bl, CX, CY, rotation_deg)
-        br = CanonicalLetters._rotate_point(*br, CX, CY, rotation_deg)
-
+        # 4. Draw the two diagonals
         skeleton.draw_line(tl, br, thickness)
         skeleton.draw_line(tr, bl, thickness)
 
     # ==========================================
-    # 🔥 LETTER W — EXTREME SHEAR
+    #  LETTER W 
     # ==========================================
     @staticmethod
     def draw_W(skeleton, peak_depth=0.7, width_factor=1.0,
@@ -205,7 +234,7 @@ class CanonicalLetters:
 
         def shear(x, y):
             factor = (BOT - y) / HEIGHT
-            return max(5, min(195, int(x + shear_x * factor * factor))), y
+            return max(5, min(195, int(x + shear_x * factor))), y
 
         p1 = shear(CX - half, TOP)
         p2 = shear(CX - quarter, valley)

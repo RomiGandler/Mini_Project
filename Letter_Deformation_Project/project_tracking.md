@@ -1,62 +1,94 @@
-# Project Tracking & Documentation
+**Project Tracking & Documentation** 
 
-## 📂 File Dictionary
-*A guide to the codebase structure.*
+I have modified it to reflect the **recent refactoring** (moving to `Run_Project`), the switch to **JSON configuration**, the new **ML dataset generator**, and the unified **Main Pipeline**.
+
+---
+
+# 📂 Project Documentation & Tracking
+
+## 🗂 File Dictionary
+
+*A guide to the current codebase structure.*
 
 ### Core Modules (`src/`)
-| File | Purpose |
-|------|---------|
-| **`letter_model.py`** | The "Engine". Responsible for creating the blank canvas, drawing lines and curves, and handling the low-level OpenCV drawing commands. It is polymorphic (can handle points or ellipse parameters). |
-| **`base_letters.py`** | The "Blueprint". Contains the logic for drawing specific letters (A, B, C). It calculates geometry, applies trigonometry for rotation/shear, and sends drawing commands to the model. |
-| **`param_config.py`** | The "Rulebook". A Single Source of Truth that defines the minimum, maximum, and default values for every parameter to prevent crashes and extreme distortions. |
 
-### Executable Scripts
 | File | Purpose |
-|------|---------|
-| **`interactive_game.py`** | A GUI tool (using Matplotlib sliders) allowing manual play with parameters to "feel" the changes in real-time. |
-| **`generate_custom_sequence.py`** | Generates a specific visual sequence (e.g., "Tilt A from -30° to 30°"). Outputs an image with 6 snapshots and a distance graph. |
-| **`run_full_analysis.py`** | An automation script that runs a predefined set of analyses on all letters and saves the results in bulk. |
-| **`generate_heatmap.py`** | Advanced analysis tool. Creates a 2D color map to visualize how *two* parameters interact and affect the letter's score simultaneously. |
+| --- | --- |
+| **`letter_model.py`** | **The Engine.** Handles canvas creation, low-level OpenCV drawing, and applying morphological transformations. |
+| **`base_letters.py`** | **The Blueprint.** Contains logic for drawing specific letters (A, B, C, F, X, W). Calculates geometry and applies trigonometry for deformations. |
+| **`param_config.json`** | **The Rulebook.** A centralized JSON file defining the Min/Max/Default values for every parameter to ensure consistency across all tools. |
+
+### Executable Tools (`Run_Project/` & Root)
+
+| File | Type | Purpose |
+| --- | --- | --- |
+| **`main.py`** | **Controller** | The master script (CLI) that manages the entire pipeline and allows running all tools from one menu. |
+| **`interactive_game.py`** | **GUI Tool** | A Matplotlib-based GUI with sliders to manually "feel" the parameter changes in real-time. |
+| **`analyze_parameter.py`** | **Analysis** | Generates **1D Distance Graphs**. Visualizes how a single parameter (e.g., Shear) affects the SSIM score. |
+| **`analyze_heatmap.py`** | **Analysis** | Generates **2D Heatmaps**. Visualizes the correlation between *two* parameters simultaneously. |
+| **`inter_letter_analysis.py`** | **Analysis** | Generates a **Similarity Matrix**. Compares the base versions of all letters against each other to check for inherent similarities. |
+| **`generate_dataset.py`** | **Data Gen** | Mass-produces thousands of deformed letter images (with metadata) for Machine Learning training. |
 
 ---
 
 ## 🚀 Development Milestones
+
 *A log of the steps taken to build the project.*
 
-### Phase 1: Infrastructure
-- [x] **Basic Skeleton:** Created `LetterSkeleton` class to handle canvas creation and basic line drawing.
-- [x] **Distance Metric:** Integrated `SSIM` from scikit-image to measure visual difference between images.
+### Phase 1: Infrastructure ✅
 
-### Phase 2: Letter Definitions
-- [x] **Letter A:** Implemented logic for Shearing, Crossbar shift, and variable width.
-- [x] **Letter B:** Implemented logic using dual loops. **Challenge:** Initially crashed due to complex curve parameters. **Fix:** Updated `letter_model` to handle ellipse arguments (`center`, `axes`).
-- [x] **Letter C:** Implemented logic using arc drawing. Added "Cut Top" parameter to control the opening size.
+* [x] **Basic Skeleton:** Created `LetterSkeleton` for canvas handling.
+* [x] **Distance Metric:** Integrated `SSIM` (Structural Similarity) to objectively measure image deformation.
 
-### Phase 3: Robustness & Safety
-- [x] **Geometric Constraints:** Added "Clamping" logic (in `base_letters`) to prevent letter parts from flying off the canvas during extreme deformations (e.g., keeping A's legs inside the frame).
-- [x] **Central Configuration:** Created `param_config.py` to centralize all parameter limits. This ensures the Game, the Analysis tools, and the Heatmaps all respect the same physical limits.
+### Phase 2: Letter Definitions ✅
 
-### Phase 4: Advanced Visualization
-- [x] **Interactive Tool:** Built a slider-based GUI.
-- [x] **Heatmaps:** Implemented 2D matrix visualization (using Seaborn) to detect correlations between parameters.
-- [x] **Heatmap Analysis Done:** Successfully generated interaction heatmap for Letter A (Shear vs Width).
+* [x] **Basic Set (A, B, C):** Implemented logic for basic geometric letters.
+* [x] **Extended Set (F, X, W):** Added complex letters requiring multi-line logic.
+* [x] **Refactoring:** Converted hardcoded values into dynamic variables.
+
+### Phase 3: Robustness & Safety ✅
+
+* [x] **Geometric Constraints:** Added "Clamping" logic to prevent drawing errors (e.g., keeping A's legs inside the frame).
+* [x] **Central Configuration:** Migrated from Python dictionaries to `param_config.json` for easier external editing.
+
+### Phase 4: Advanced Visualization & Analysis ✅
+
+* [x] **Interactive Tool:** Built the slider-based GUI.
+* [x] **Heatmaps:** Implemented 2D matrix visualization (Seaborn).
+* [x] **Parameter Sweeps:** Created logic to graph distance vs. parameter intensity.
+* [x] **Inter-Letter Matrix:** Added logic to compare different letters (e.g., How similar is A to X?).
+
+### Phase 5: Pipeline & Production ✅
+
+* [x] **Dataset Generator:** Created a script to export images + JSON labels for ML.
+* [x] **Unified CLI:** Built `main.py` to orchestrate all scripts via a terminal menu.
+* [x] **Project Cleanup:** Organized files into `src`, `Run_Project`, and `analysis`.
 
 ---
 
-## 📝 Next Steps / To-Do
-- [ ] Analyze results to find "Perceptual Breakpoints" (points where the score drops drastically for other letters).
-- [ ] Generate documentation for final submission.
+## 📝 Next Steps / Future Work
+
+* [ ] **Final Report:** Compile all generated graphs into a PDF report.
+* [ ] **Machine Learning:** Use the dataset generated by `generate_dataset.py` to train a Neural Network to recognize deformed letters.
+* [ ] **Perceptual Breakpoints:** Analyze the 1D graphs to find the exact parameter value where a letter becomes "unrecognizable" (SSIM > 0.5).
 
 ---
 
 ## 🧠 Key Research Findings
-*Insights derived from the generated data and graphs.*
 
-### Analysis of Letter A: Shear vs. Width Interaction
-Based on the heatmap `heatmap_A_shear_x_base_width_factor.png`:
+*Insights derived from the `analysis/` output folder.*
 
-1.  **The "Sweet Spot" (Optimal Zone):** The lowest distance scores (~0.10 - 0.12, indicated in deep blue) occur when both parameters are near their defaults (Shear near 0, Width factor between 0.9 and 1.1).
-2.  **Width is Dominant Over Shear:**
-    * Extreme broadening of the letter (Base Width Factor > 1.5, bottom rows) results in the highest distance scores (deep red, ~0.29 - 0.31) regardless of the shear value.
-    * Extreme shearing (-40 or +40) also increases the distance, but less drastically (orange zones, scores ~0.23 - 0.25) as long as the width remains reasonable.
-3.  **Conclusion:** The perceptual structure of letter 'A' is more sensitive to extreme changes in its aspect ratio (becoming too wide or too narrow) than it is to being tilted (sheared).
+### 1. Letter A: Shear vs. Width (Heatmap Analysis)
+
+Based on `heatmap_A_shear_x_base_width_factor.png`:
+
+* **The "Sweet Spot":** The lowest distance scores (0.10 - 0.12) occur when Shear is near 0 and Width is standard (1.0).
+* **Dominant Factor:** Width is more critical than Shear. Extreme broadening (>1.5) ruins the SSIM score faster than extreme shearing.
+
+### 2. Letter B: Structural Complexity
+
+* **Findings:** Letter B is highly sensitive to `vertical_squash`. Because it relies on two loops, squashing it vertically causes the loops to merge or distort significantly faster than open letters like 'C'.
+
+### 3. Inter-Letter Similarity
+
+* **Findings:** The `inter_letter_analysis.py` matrix reveals that 'X' and 'W' have the highest inherent similarity due to their diagonal stroke composition, while 'B' is the most unique structurally due to its enclosed loops.
