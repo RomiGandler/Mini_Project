@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import seaborn as sns  # library for heatmaps
+import seaborn as sns
 from skimage.metrics import structural_similarity as ssim
 from src.letter_model import LetterSkeleton
 from src.base_letters import CanonicalLetters
@@ -11,6 +11,9 @@ DRAW_FUNCS = {
     'A': CanonicalLetters.draw_A,
     'B': CanonicalLetters.draw_B,
     'C': CanonicalLetters.draw_C,
+    'F': CanonicalLetters.draw_F,
+    'X': CanonicalLetters.draw_X,
+    'W': CanonicalLetters.draw_W,
 }
 
 OUTPUT_DIR = "results/heatmaps"
@@ -30,9 +33,12 @@ def get_base_image(letter_char):
 
 def generate_heatmap():
     print("\n--- 2D Parameter Heatmap Generator ---")
+    print(f"Available letters: {list(DRAW_FUNCS.keys())}")
     
-    letter = input("Which letter (A, B, C)? ").upper().strip()
-    if letter not in DRAW_FUNCS: return
+    letter = input("Which letter (A, B, C, F, X, W)? ").upper().strip()
+    if letter not in DRAW_FUNCS:
+        print("Invalid letter!")
+        return
 
     print(f"\nAvailable parameters for {letter}: {list(PARAM_CONFIG[letter].keys())}")
     
@@ -43,11 +49,9 @@ def generate_heatmap():
         print("Invalid parameters.")
         return
 
-    # Define ranges (taken from the configuration)
     cfg1 = PARAM_CONFIG[letter][param1]
     cfg2 = PARAM_CONFIG[letter][param2]
 
-    # Create 10 steps for each parameter (total 100 runs)
     steps = 10
     x_values = np.linspace(cfg1['min'], cfg1['max'], steps)
     y_values = np.linspace(cfg2['min'], cfg2['max'], steps)
@@ -59,17 +63,20 @@ def generate_heatmap():
 
     print("Calculating grid...")
 
-    # Iterate over all combinations
-    for i, y_val in enumerate(y_values):  # Rows
-        for j, x_val in enumerate(x_values):  # Columns
-
-            # Prepare parameters
+    for i, y_val in enumerate(y_values):
+        for j, x_val in enumerate(x_values):
             current_params = {k: v['default'] for k, v in PARAM_CONFIG[letter].items()}
 
-            # Update the two selected parameters
-            # Convert to int if needed, otherwise float
-            current_params[param1] = int(x_val) if 'width' not in param1 and 'squash' not in param1 else x_val
-            current_params[param2] = int(y_val) if 'width' not in param2 and 'squash' not in param2 else y_val
+            # Handle data types
+            if isinstance(cfg1['default'], float):
+                current_params[param1] = float(x_val)
+            else:
+                current_params[param1] = int(x_val)
+                
+            if isinstance(cfg2['default'], float):
+                current_params[param2] = float(y_val)
+            else:
+                current_params[param2] = int(y_val)
             
             model.clear()
             DRAW_FUNCS[letter](model, **current_params)
@@ -78,11 +85,7 @@ def generate_heatmap():
             score = calculate_distance(base_img, img)
             heatmap_data[i, j] = score
 
-    # Draw the graph
     plt.figure(figsize=(10, 8))
-
-    # Use Seaborn for a nice heatmap
-    # y_values is reversed so that the high value is at the top
     ax = sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="coolwarm",
                      xticklabels=[f"{x:.1f}" for x in x_values],
                      yticklabels=[f"{y:.1f}" for y in y_values])

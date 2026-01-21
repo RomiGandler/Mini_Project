@@ -2,120 +2,136 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from skimage.metrics import structural_similarity as ssim
+
 from src.letter_model import LetterSkeleton
 from src.base_letters import CanonicalLetters
 from src.param_config import PARAM_CONFIG, get_limits
+
+# =========================
+# Configuration
+# =========================
 
 DRAW_FUNCS = {
     'A': CanonicalLetters.draw_A,
     'B': CanonicalLetters.draw_B,
     'C': CanonicalLetters.draw_C,
+    'F': CanonicalLetters.draw_F,
+    'X': CanonicalLetters.draw_X,
+    'W': CanonicalLetters.draw_W,
 }
 
 OUTPUT_DIR = "results/custom_sequences"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# =========================
+# Utilities
+# =========================
+
 def calculate_distance(img1, img2):
     d_range = img1.max() - img1.min()
-    if d_range == 0: d_range = 1
+    if d_range == 0:
+        d_range = 1
     sim = ssim(img1, img2, data_range=d_range)
-    return max(0, 1.0 - sim)
+    return max(0.0, 1.0 - sim)
 
-def get_base_image(letter_char):
+def get_base_image(letter):
     model = LetterSkeleton(size=(200, 200))
-    # Retrieve default values from the configuration
-    params = {k: v['default'] for k, v in PARAM_CONFIG[letter_char].items()}
-    DRAW_FUNCS[letter_char](model, **params)
+    params = {k: v['default'] for k, v in PARAM_CONFIG[letter].items()}
+    DRAW_FUNCS[letter](model, **params)
     return model.apply_morphology(thickness=params['thickness'])
 
+# =========================
+# Main Logic
+# =========================
+
 def run_sequence():
-    print("\n--- Custom Deformation Generator (Safe Mode) ---")
-    
-    letter = input("Which letter (A, B, C)? ").upper().strip()
+    print("\n--- Custom Deformation Generator ---")
+    print(f"Available letters: {list(DRAW_FUNCS.keys())}")
+
+    letter = input("Choose letter: ").upper().strip()
     if letter not in DRAW_FUNCS:
-        print("Invalid letter!")
+        print("❌ Invalid letter")
         return
 
     print(f"\nAvailable parameters for {letter}:")
-    # Display the parameters with their limits
-    for key, val in PARAM_CONFIG[letter].items():
-        print(f" - {key} [Min: {val['min']}, Max: {val['max']}]")
-    
-    param_name = input("\nWhich parameter to change? ").strip()
-    if param_name not in PARAM_CONFIG[letter]:
-        print("Invalid parameter name!")
+    for k, v in PARAM_CONFIG[letter].items():
+        print(f" - {k}: [{v['min']} → {v['max']}] (default={v['default']})")
+
+    param = input("\nWhich parameter to vary? ").strip()
+    if param not in PARAM_CONFIG[letter]:
+        print("❌ Invalid parameter")
         return
 
-    limits = get_limits(letter, param_name)
-    
+    limits = get_limits(letter, param)
+
     try:
-        start_raw = float(input(f"Start value (Limit {limits['min']}): "))
-        end_raw = float(input(f"End value (Limit {limits['max']}): "))
-        steps = int(input("Number of steps (e.g., 5 or 10): "))
+        start = float(input(f"Start value (≥ {limits['min']}): "))
+        end = float(input(f"End value (≤ {limits['max']}): "))
+        steps = int(input("Number of steps: "))
     except ValueError:
-        print("Please enter valid numbers.")
+        print("❌ Invalid input")
         return
 
-    # === Clamping ===
-    start_val = max(limits['min'], min(limits['max'], start_raw))
-    end_val = max(limits['min'], min(limits['max'], end_raw))
-    
-    if start_val != start_raw or end_val != end_raw:
-        print(f"⚠️ Note: Values were clamped to safe limits: {start_val} to {end_val}")
+    # Clamp values
+    start = max(limits['min'], min(limits['max'], start))
+    end = max(limits['min'], min(limits['max'], end))
 
-    # Prepare the model
+    print(f"\nGenerating {steps} variations for {letter}.{param}...")
+
     model = LetterSkeleton(size=(200, 200))
     base_img = get_base_image(letter)
-    
-    param_values = np.linspace(start_val, end_val, steps)
-    images = []
-    scores = []
-    
-    print(f"\nGenerating {steps} variations...")
 
-    for val in param_values:
-        model.canvas.fill(0)
+    values = np.linspace(start, end, steps)
+    images, scores = [], []
 
-        # Build the dictionary for the current parameters
-        current_params = {k: v['default'] for k, v in PARAM_CONFIG[letter].items()}
+    for val in values:
+        model.clear()
+        params = {k: v['default'] for k, v in PARAM_CONFIG[letter].items()}
 
-        # Update the selected parameter
-        if param_name in ['base_width_factor', 'width_factor', 'vertical_squash']:
-            current_params[param_name] = float(val)
+        # Preserve type
+        if isinstance(params[param], int):
+            params[param] = int(round(val))
         else:
-            current_params[param_name] = int(val)
-            
-        DRAW_FUNCS[letter](model, **current_params)
-        img = model.apply_morphology(thickness=current_params['thickness'])
-        
+            params[param] = float(val)
+
+        DRAW_FUNCS[letter](model, **params)
+        img = model.apply_morphology(thickness=params['thickness'])
+
         images.append(img)
         scores.append(calculate_distance(base_img, img))
 
-    # Draw the graph (same code as before)
-    fig = plt.figure(figsize=(15, 8))
-    fig.suptitle(f"Analysis of '{letter}' varying '{param_name}'", fontsize=16, fontweight='bold')
+    # =========================
+    # Visualization
+    # =========================
 
-    for i in range(steps):
+    fig = plt.figure(figsize=(16, 8))
+    fig.suptitle(
+        f"{letter} – Varying '{param}'",
+        fontsize=18,
+        fontweight='bold'
+    )
+
+    for i, (img, score) in enumerate(zip(images, scores)):
         ax = fig.add_subplot(2, steps, i + 1)
-        ax.imshow(images[i], cmap='gray')
-        ax.set_title(f"{param_values[i]:.1f}\nScore: {scores[i]:.2f}", fontsize=9)
+        ax.imshow(img, cmap='gray')
+        ax.set_title(f"{values[i]:.2f}\nD={score:.2f}", fontsize=9)
         ax.axis('off')
 
-    ax_graph = fig.add_subplot(2, 1, 2)
-    ax_graph.plot(param_values, scores, marker='o', linestyle='-', color='#88C0D0', linewidth=2)
-    ax_graph.set_xlabel(f"{param_name} Value")
-    ax_graph.set_ylabel("Distance Score (Lower is Better)")
-    ax_graph.grid(True, alpha=0.3)
-    
-    for x, y in zip(param_values, scores):
-        ax_graph.text(x, y, f"{y:.2f}", fontsize=8, ha='right', va='bottom')
+    ax_plot = fig.add_subplot(2, 1, 2)
+    ax_plot.plot(values, scores, marker='o')
+    ax_plot.set_xlabel(param)
+    ax_plot.set_ylabel("Distance from base")
+    ax_plot.grid(alpha=0.3)
 
+    filename = f"{letter}_{param}_sequence.png"
+    path = os.path.join(OUTPUT_DIR, filename)
     plt.tight_layout()
-    filename = f"{letter}_{param_name}_{start_val:.1f}_to_{end_val:.1f}.png"
-    save_path = os.path.join(OUTPUT_DIR, filename)
-    plt.savefig(save_path)
-    print(f"\nDone! Saved result to:\n{save_path}")
+    plt.savefig(path, dpi=150)
     plt.show()
+
+    print(f"\n✅ Saved to: {path}")
+
+# =========================
 
 if __name__ == "__main__":
     run_sequence()

@@ -1,5 +1,5 @@
 # Dictionary defining parameter limits and defaults for letter deformation
-# For each letter (A, B, C), we define parameters with:
+# For each letter (A, B, C, F, X, W), we define parameters with:
 # 1. Minimum value (min)
 # 2. Maximum value (max)
 # 3. Default value (default)
@@ -24,6 +24,27 @@ PARAM_CONFIG = {
         'vertical_squash':   {'min': 0.4, 'max': 1.0, 'default': 1.0},
         'rotation_deg':      {'min': -30, 'max': 30,  'default': 0},
         'thickness':         {'min': 1,   'max': 20,  'default': 6}
+    },
+    'F': {
+        'bar_length':        {'min': 0.5, 'max': 1.5, 'default': 1.0},
+        'middle_bar_shift':  {'min': -30, 'max': 30,  'default': 0},
+        'shear_x':           {'min': -30, 'max': 30,  'default': 0},
+        'spine_height':      {'min': 0.6, 'max': 1.2, 'default': 1.0},
+        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+    },
+    'X': {
+        'cross_ratio':       {'min': 0.3, 'max': 0.7, 'default': 0.5},
+        'spread_angle':      {'min': -20, 'max': 20,  'default': 0},
+        'rotation_deg':      {'min': -30, 'max': 30,  'default': 0},
+        'asymmetry':         {'min': -20, 'max': 20,  'default': 0},
+        'thickness':         {'min': 1,   'max': 20,  'default': 6}
+    },
+    'W': {
+        'peak_depth':        {'min': 0.3, 'max': 0.9, 'default': 0.7},
+        'width_factor':      {'min': 0.6, 'max': 1.4, 'default': 1.0},
+        'middle_height':     {'min': 0.3, 'max': 0.8, 'default': 0.5},
+        'shear_x':           {'min': -25, 'max': 25,  'default': 0},
+        'thickness':         {'min': 1,   'max': 20,  'default': 6}
     }
 }
 
@@ -32,3 +53,7 @@ def get_limits(letter, param):
     if letter in PARAM_CONFIG and param in PARAM_CONFIG[letter]:
         return PARAM_CONFIG[letter][param]
     return None
+
+def get_all_letters():
+    """Returns a list of all available letters"""
+    return list(PARAM_CONFIG.keys())

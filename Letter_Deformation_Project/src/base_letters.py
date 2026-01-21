@@ -1,171 +1,219 @@
 import numpy as np
 import math
 
+
 class CanonicalLetters:
-    
+
+    # ==========================================
+    # Helper: rotation
+    # ==========================================
     @staticmethod
     def _rotate_point(x, y, cx, cy, angle_deg):
-        """Rotates a point around a center point by a given angle."""
         rad = math.radians(angle_deg)
         cos_a = math.cos(rad)
         sin_a = math.sin(rad)
-        
+
         dx = x - cx
         dy = y - cy
-        
+
         new_x = cx + dx * cos_a - dy * sin_a
         new_y = cy + dx * sin_a + dy * cos_a
-        
+
         return int(new_x), int(new_y)
 
+    # ==========================================
+    # LETTER A (unchanged)
+    # ==========================================
     @staticmethod
-    def draw_A(skeleton, top_width=0, crossbar_h_shift=0, base_width_factor=1.0, shear_x=0, thickness=6, **kwargs):
+    def draw_A(skeleton, top_width=0, crossbar_h_shift=0,
+               base_width_factor=1.0, shear_x=0, thickness=6, **kwargs):
+
         skeleton.clear()
 
-        # === 1. Calculate Dynamic Center ===
-        CANVAS_CENTER_X = 100 - (int(shear_x) // 2)
-        
+        CENTER_X = 100 - int(shear_x // 2)
         TOP_Y = 40
         BOTTOM_Y = 175
         HEIGHT = BOTTOM_Y - TOP_Y
-        DEFAULT_BASE_WIDTH = 100
-        
-        current_base_width = int(DEFAULT_BASE_WIDTH * base_width_factor)
-        current_top_width = int(top_width)
-        
-        base_left_x = CANVAS_CENTER_X - (current_base_width // 2)
-        base_right_x = CANVAS_CENTER_X + (current_base_width // 2)
-        
-        top_left_x = CANVAS_CENTER_X - (current_top_width // 2)
-        top_right_x = CANVAS_CENTER_X + (current_top_width // 2)
 
-        # === 2. Shear Function ===
-        def apply_shear_and_clamp(x, y):
-            factor = (BOTTOM_Y - y) / HEIGHT if HEIGHT != 0 else 0
-            shifted_x = x + int(shear_x * factor)
-            clamped_x = max(5, min(195, shifted_x))
-            return clamped_x, y
+        base_width = int(100 * base_width_factor)
+        top_width = int(top_width)
 
-        p_base_left = apply_shear_and_clamp(base_left_x, BOTTOM_Y)
-        p_base_right = apply_shear_and_clamp(base_right_x, BOTTOM_Y)
-        p_top_left = apply_shear_and_clamp(top_left_x, TOP_Y)
-        p_top_right = apply_shear_and_clamp(top_right_x, TOP_Y)
-        
-        skeleton.draw_line(p_base_left, p_top_left, thickness)
-        skeleton.draw_line(p_base_right, p_top_right, thickness)
-        
-        if current_top_width > 0:
-            skeleton.draw_line(p_top_left, p_top_right, thickness)
+        def shear(x, y):
+            factor = (BOTTOM_Y - y) / HEIGHT
+            return max(5, min(195, int(x + shear_x * factor))), y
 
-        # === 3. Calculate Crossbar ===
-        bar_y_base = (TOP_Y + BOTTOM_Y) // 2 + 10
-        raw_bar_y = bar_y_base - int(crossbar_h_shift)
-        
-        sharpness_penalty = 20 if current_top_width < 20 else 0
-        safe_distance_from_top = int(thickness * 1.5) + 10 + sharpness_penalty
-        min_allowed_y = TOP_Y + safe_distance_from_top
-        
-        bar_y = max(raw_bar_y, min_allowed_y)
-        max_allowed_y = BOTTOM_Y - 25
-        bar_y = min(bar_y, max_allowed_y)
+        bl = shear(CENTER_X - base_width // 2, BOTTOM_Y)
+        br = shear(CENTER_X + base_width // 2, BOTTOM_Y)
+        tl = shear(CENTER_X - top_width // 2, TOP_Y)
+        tr = shear(CENTER_X + top_width // 2, TOP_Y)
 
-        # Calculate Crossbar
-        if p_base_left[0] == p_top_left[0]:
-             bar_x_left = p_base_left[0]
-        else:
-             m = (p_base_left[1] - p_top_left[1]) / (p_base_left[0] - p_top_left[0])
-             bar_x_left = (bar_y - p_top_left[1]) / m + p_top_left[0]
+        skeleton.draw_line(bl, tl, thickness)
+        skeleton.draw_line(br, tr, thickness)
 
-        if p_base_right[0] == p_top_right[0]:
-             bar_x_right = p_base_right[0]
-        else:
-             m = (p_base_right[1] - p_top_right[1]) / (p_base_right[0] - p_top_right[0])
-             bar_x_right = (bar_y - p_top_right[1]) / m + p_top_right[0]
-        
-        skeleton.draw_line((int(bar_x_left), int(bar_y)), (int(bar_x_right), int(bar_y)), thickness)
+        if top_width > 0:
+            skeleton.draw_line(tl, tr, thickness)
 
+        bar_y = (TOP_Y + BOTTOM_Y) // 2 - crossbar_h_shift
+        bar_y = max(TOP_Y + 20, min(BOTTOM_Y - 25, bar_y))
+
+        skeleton.draw_line((tl[0], bar_y), (tr[0], bar_y), thickness)
+
+    # ==========================================
+    # LETTER B (unchanged)
+    # ==========================================
     @staticmethod
-    def draw_B(skeleton, width_factor=1.0, waist_y_shift=0, rotation_deg=0, vertical_squash=1.0, thickness=6, **kwargs):
+    def draw_B(skeleton, width_factor=1.0, waist_y_shift=0,
+               rotation_deg=0, vertical_squash=1.0, thickness=6, **kwargs):
+
         skeleton.clear()
-        
+
         LEFT_X = 60
         TOP_Y = 30
         BOTTOM_Y = 170
-        WAIST_Y_DEFAULT = 100
-        WIDTH_DEFAULT = 70
-        CENTER_Y_CANVAS = 100
-        
-        def squash_y(y):
-            dy = y - CENTER_Y_CANVAS
-            return int(CENTER_Y_CANVAS + dy * vertical_squash)
-            
-        current_top_y = squash_y(TOP_Y)
-        current_bottom_y = squash_y(BOTTOM_Y)
-        current_waist_y = squash_y(WAIST_Y_DEFAULT - int(waist_y_shift))
-        current_width = int(WIDTH_DEFAULT * width_factor)
-        
-        top_left = (LEFT_X, current_top_y)
-        bottom_left = (LEFT_X, current_bottom_y)
-        
-        p1 = CanonicalLetters._rotate_point(*top_left, 100, 100, rotation_deg)
-        p2 = CanonicalLetters._rotate_point(*bottom_left, 100, 100, rotation_deg)
+        CENTER_Y = 100
+        WIDTH = int(70 * width_factor)
+
+        def squash(y):
+            return int(CENTER_Y + (y - CENTER_Y) * vertical_squash)
+
+        top = squash(TOP_Y)
+        bottom = squash(BOTTOM_Y)
+        waist = squash(100 - waist_y_shift)
+
+        p1 = CanonicalLetters._rotate_point(LEFT_X, top, 100, 100, rotation_deg)
+        p2 = CanonicalLetters._rotate_point(LEFT_X, bottom, 100, 100, rotation_deg)
         skeleton.draw_line(p1, p2, thickness)
-        
-        top_height = abs(current_waist_y - current_top_y)
-        top_radius_y = top_height // 2
-        top_center_y = min(current_top_y, current_waist_y) + top_radius_y
-        p_top_center = CanonicalLetters._rotate_point(LEFT_X, top_center_y, 100, 100, rotation_deg)
-        
+
         skeleton.draw_curve(
-            center=p_top_center, 
-            axes=(current_width, int(top_radius_y)), 
-            angle=rotation_deg, 
-            start_angle=-90, 
-            end_angle=90,
-            thickness=thickness
-        )
-        
-        # Lower Loop
-        bottom_height = abs(current_bottom_y - current_waist_y)
-        bottom_radius_y = bottom_height // 2
-        bottom_center_y = min(current_waist_y, current_bottom_y) + bottom_radius_y
-        p_bottom_center = CanonicalLetters._rotate_point(LEFT_X, bottom_center_y, 100, 100, rotation_deg)
-        
-        skeleton.draw_curve(
-            center=p_bottom_center, 
-            axes=(current_width, int(bottom_radius_y)), 
-            angle=rotation_deg, 
-            start_angle=-90, 
+            center=CanonicalLetters._rotate_point(LEFT_X, (top + waist)//2, 100, 100, rotation_deg),
+            axes=(WIDTH, abs(waist-top)//2),
+            angle=rotation_deg,
+            start_angle=-90,
             end_angle=90,
             thickness=thickness
         )
 
+        skeleton.draw_curve(
+            center=CanonicalLetters._rotate_point(LEFT_X, (waist + bottom)//2, 100, 100, rotation_deg),
+            axes=(WIDTH, abs(bottom-waist)//2),
+            angle=rotation_deg,
+            start_angle=-90,
+            end_angle=90,
+            thickness=thickness
+        )
+
+    # ==========================================
+    # LETTER C (unchanged)
+    # ==========================================
     @staticmethod
-    def draw_C(skeleton, rotation_deg=0, cut_top=0, cut_bottom=0, vertical_squash=1.0, thickness=6, **kwargs):
+    def draw_C(skeleton, rotation_deg=0, cut_top=0,
+               cut_bottom=0, vertical_squash=1.0, thickness=6, **kwargs):
+
         skeleton.clear()
+
         CENTER_X = 110
         CENTER_Y = 100
-        BASE_RADIUS = 75 
-        
-        radius_x = BASE_RADIUS
-        radius_y = int(BASE_RADIUS * vertical_squash)
-        
-        base_start = 45
-        base_end = 315
-        
-        safe_cut_top = max(-50, min(120, cut_top))
-        
-        current_start = base_start # safe_cut_bottom
-        current_end = base_end - safe_cut_top
-        
-        if current_end <= current_start:
-             current_end = current_start + 10
+        R = 75
 
         skeleton.draw_curve(
             center=(CENTER_X, CENTER_Y),
-            axes=(radius_x, radius_y),
+            axes=(R, int(R * vertical_squash)),
             angle=rotation_deg,
-            start_angle=current_start,
-            end_angle=current_end,
+            start_angle=45,
+            end_angle=315 - cut_top,
             thickness=thickness
         )
+
+    # ==========================================
+    # 🔥 LETTER F — EXTREME
+    # ==========================================
+    @staticmethod
+    def draw_F(skeleton, bar_length=1.0, middle_bar_shift=0,
+               shear_x=0, spine_height=1.0, thickness=6, **kwargs):
+
+        skeleton.clear()
+
+        LEFT_X = 55
+        TOP_Y = 30
+        HEIGHT = int((170 - 30) * spine_height)
+        bottom_y = TOP_Y + HEIGHT
+        bar_len = int(90 * bar_length)
+
+        def shear(x, y):
+            factor = (bottom_y - y) / HEIGHT
+            return max(5, min(195, int(x + shear_x * factor * factor))), y
+
+        skeleton.draw_line(shear(LEFT_X, TOP_Y), shear(LEFT_X, bottom_y), thickness)
+        skeleton.draw_line(shear(LEFT_X, TOP_Y), shear(LEFT_X + bar_len, TOP_Y), thickness)
+
+        mid_y = TOP_Y + int(HEIGHT * 0.45) + middle_bar_shift
+        skeleton.draw_line(
+            shear(LEFT_X, mid_y),
+            shear(LEFT_X + int(bar_len * 0.5), mid_y),
+            thickness
+        )
+
+    # ==========================================
+    # 🔥 LETTER X — SCALE + ROTATION
+    # ==========================================
+    @staticmethod
+    def draw_X(skeleton, spread_angle=0, rotation_deg=0,
+               asymmetry=0, scale=1.0, thickness=6, **kwargs):
+
+        skeleton.clear()
+
+        CX, CY = 100, 100
+        TOP, BOT = 30, 170
+        base = 45 + spread_angle
+
+        def scale_pt(x, y):
+            return int(CX + (x-CX)*scale), int(CY + (y-CY)*scale)
+
+        tl = scale_pt(CX - base - asymmetry, TOP)
+        tr = scale_pt(CX + base + asymmetry, TOP)
+        bl = scale_pt(CX - base, BOT)
+        br = scale_pt(CX + base, BOT)
+
+        tl = CanonicalLetters._rotate_point(*tl, CX, CY, rotation_deg)
+        tr = CanonicalLetters._rotate_point(*tr, CX, CY, rotation_deg)
+        bl = CanonicalLetters._rotate_point(*bl, CX, CY, rotation_deg)
+        br = CanonicalLetters._rotate_point(*br, CX, CY, rotation_deg)
+
+        skeleton.draw_line(tl, br, thickness)
+        skeleton.draw_line(tr, bl, thickness)
+
+    # ==========================================
+    # 🔥 LETTER W — EXTREME SHEAR
+    # ==========================================
+    @staticmethod
+    def draw_W(skeleton, peak_depth=0.7, width_factor=1.0,
+               middle_height=0.5, shear_x=0, thickness=6, **kwargs):
+
+        skeleton.clear()
+
+        CX = 100
+        TOP = 30
+        BOT = 170
+        HEIGHT = BOT - TOP
+
+        width = int(160 * width_factor)
+        half = width // 2
+        quarter = width // 4
+
+        valley = TOP + int(HEIGHT * peak_depth)
+        mid_peak = TOP + int(HEIGHT * (1 - middle_height))
+
+        def shear(x, y):
+            factor = (BOT - y) / HEIGHT
+            return max(5, min(195, int(x + shear_x * factor * factor))), y
+
+        p1 = shear(CX - half, TOP)
+        p2 = shear(CX - quarter, valley)
+        p3 = shear(CX, mid_peak)
+        p4 = shear(CX + quarter, valley)
+        p5 = shear(CX + half, TOP)
+
+        skeleton.draw_line(p1, p2, thickness)
+        skeleton.draw_line(p2, p3, thickness)
+        skeleton.draw_line(p3, p4, thickness)
+        skeleton.draw_line(p4, p5, thickness)

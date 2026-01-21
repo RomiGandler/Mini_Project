@@ -7,7 +7,7 @@ from src.letter_model import LetterSkeleton
 from src.base_letters import CanonicalLetters
 
 # ==========================================
-# 1. Configuration Definitions
+# 1. Configuration Definitions (including F, X, W)
 # ==========================================
 
 CONFIGS = {
@@ -20,15 +20,36 @@ CONFIGS = {
     },
     'B': {
         'width_factor': (1.0, 0.5),
-        'waist_y_shift': (0, 40),
-        'rotation_deg': (0, -30),
-        'vertical_squash': (1.0, 0.6),
+        'waist_y_shift': (0, 30),
+        'rotation_deg': (0, -20),
+        'vertical_squash': (1.0, 0.5),
         'thickness': (6, 18)
     },
     'C': {
-        'cut_top': (40, -60),
-        'vertical_squash': (1.0, 0.45),
-        'rotation_deg': (0, 45),
+        'cut_top': (40, -20),
+        'vertical_squash': (1.0, 0.5),
+        'rotation_deg': (0, 30),
+        'thickness': (6, 18)
+    },
+    'F': {
+        'bar_length': (1.0, 1.5),
+        'middle_bar_shift': (0, 30),
+        'shear_x': (0, 30),
+        'spine_height': (1.0, 0.7),
+        'thickness': (6, 18)
+    },
+    'X': {
+        'cross_ratio': (0.5, 0.3),
+        'spread_angle': (0, 20),
+        'rotation_deg': (0, 30),
+        'asymmetry': (0, 20),
+        'thickness': (6, 18)
+    },
+    'W': {
+        'peak_depth': (0.7, 0.9),
+        'width_factor': (1.0, 1.4),
+        'middle_height': (0.5, 0.3),
+        'shear_x': (0, 25),
         'thickness': (6, 18)
     }
 }
@@ -44,7 +65,24 @@ PARAM_SHORT_NAMES = {
     'elongation_factor': 'Elong',
     'cut_top': 'Cut',
     'shear_x': 'Shear',
-    'thickness': 'Thick'
+    'thickness': 'Thick',
+    'bar_length': 'BarLen',
+    'middle_bar_shift': 'MidBar',
+    'spine_height': 'Spine',
+    'cross_ratio': 'Cross',
+    'spread_angle': 'Spread',
+    'asymmetry': 'Asym',
+    'peak_depth': 'Peak',
+    'middle_height': 'MidH'
+}
+
+DRAW_FUNCS = {
+    'A': CanonicalLetters.draw_A,
+    'B': CanonicalLetters.draw_B,
+    'C': CanonicalLetters.draw_C,
+    'F': CanonicalLetters.draw_F,
+    'X': CanonicalLetters.draw_X,
+    'W': CanonicalLetters.draw_W,
 }
 
 # ==========================================
@@ -108,7 +146,6 @@ def generate_full_matrix_for_letter(letter_char, draw_func, output_dir):
 
     # --- Base Image for Comparison ---
     base_params = get_interpolated_params(letter_char, [], 0)
-    # Using pop to remove thickness from the dictionary to avoid duplication
     base_thick = int(base_params.pop('thickness', 6))
     
     draw_func(model, **base_params, thickness=base_thick)
@@ -123,7 +160,6 @@ def generate_full_matrix_for_letter(letter_char, draw_func, output_dir):
             t = col_idx / (steps - 1)
             params = get_interpolated_params(letter_char, combo, t)
 
-            # This removes thickness from the params dictionary, so it won't be passed twice.
             thickness_val = params.pop('thickness', 6)
             if isinstance(thickness_val, float): thickness_val = int(thickness_val)
 
@@ -131,13 +167,10 @@ def generate_full_matrix_for_letter(letter_char, draw_func, output_dir):
             
             img = model.apply_morphology(thickness=thickness_val)
 
-            # Calculate the score
             dist_score = calculate_distance(base_img, img)
 
-            # Creating text for parameters
             info_texts = []
             for k in combo:
-                # Since we did pop, thickness is not in params
                 if k == 'thickness':
                     val = thickness_val
                 else:
@@ -155,7 +188,6 @@ def generate_full_matrix_for_letter(letter_char, draw_func, output_dir):
             else:
                 param_str = "\n".join(info_texts)
 
-            # Display
             ax = axes[row_idx, col_idx]
             ax.imshow(img, cmap='gray')
             ax.axis('off')
@@ -177,9 +209,9 @@ def main():
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    generate_full_matrix_for_letter('A', CanonicalLetters.draw_A, OUTPUT_DIR)
-    generate_full_matrix_for_letter('B', CanonicalLetters.draw_B, OUTPUT_DIR)
-    generate_full_matrix_for_letter('C', CanonicalLetters.draw_C, OUTPUT_DIR)
+    # Generate matrices for all letters
+    for letter_char, draw_func in DRAW_FUNCS.items():
+        generate_full_matrix_for_letter(letter_char, draw_func, OUTPUT_DIR)
     
     print(f"\n✅ Done! Check '{OUTPUT_DIR}' folder.")
 

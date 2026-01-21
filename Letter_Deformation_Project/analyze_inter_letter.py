@@ -17,11 +17,11 @@ def get_similarity(img1, img2):
     return ssim(img1, img2, data_range=img1.max() - img1.min())
 
 # ==========================================
-# Create Base Letters
+# Create Base Letters (now including F, X, W)
 # ==========================================
 
 def create_base_letters():
-    """Creates the three basic letters"""
+    """Creates all six basic letters"""
     model = LetterSkeleton(size=(200, 200))
     
     CanonicalLetters.draw_A(model)
@@ -33,39 +33,74 @@ def create_base_letters():
     CanonicalLetters.draw_C(model)
     base_C = model.apply_morphology(thickness=6).copy()
     
-    return {'A': base_A, 'B': base_B, 'C': base_C}
+    CanonicalLetters.draw_F(model)
+    base_F = model.apply_morphology(thickness=6).copy()
+    
+    CanonicalLetters.draw_X(model)
+    base_X = model.apply_morphology(thickness=6).copy()
+    
+    CanonicalLetters.draw_W(model)
+    base_W = model.apply_morphology(thickness=6).copy()
+    
+    return {'A': base_A, 'B': base_B, 'C': base_C, 'F': base_F, 'X': base_X, 'W': base_W}
 
 # ==========================================
 # Create Max Deformed Letters
 # ==========================================
 
 def create_max_deformed_letters():
-    """Creates the three letters with maximum deformation"""
+    """Creates all six letters with maximum deformation"""
     model = LetterSkeleton(size=(200, 200))
     
     # A with maximum deformation
     CanonicalLetters.draw_A(model, 
-                            top_width=140,           # Very round head  
-                            base_width_factor=2.0,   # Very wide legs
-                            crossbar_h_shift=50)     # Crossbar shifted down
+                            top_width=80,
+                            base_width_factor=1.8,
+                            crossbar_h_shift=30,
+                            shear_x=30)
     deformed_A = model.apply_morphology(thickness=6).copy()
     
     # B with maximum deformation
     CanonicalLetters.draw_B(model,
-                            width_factor=0.5,        # Very thin
-                            waist_y_shift=40,        # Waist shifted down
-                            rotation_deg=-35)        # Rotated
+                            width_factor=0.6,
+                            waist_y_shift=25,
+                            rotation_deg=-15,
+                            vertical_squash=0.5)
     deformed_B = model.apply_morphology(thickness=6).copy()
     
     # C with maximum deformation
     CanonicalLetters.draw_C(model,
-                            cut_top=-40,             # Closed
-                            cut_bottom=-40,          # Closed
-                            elongation_factor=1.6,   # Squished
-                            rotation_deg=60)         # Rotated
+                            cut_top=-15,
+                            vertical_squash=0.5,
+                            rotation_deg=25)
     deformed_C = model.apply_morphology(thickness=6).copy()
     
-    return {'A': deformed_A, 'B': deformed_B, 'C': deformed_C}
+    # F with maximum deformation
+    CanonicalLetters.draw_F(model,
+                            bar_length=1.4,
+                            middle_bar_shift=25,
+                            shear_x=25,
+                            spine_height=0.7)
+    deformed_F = model.apply_morphology(thickness=6).copy()
+    
+    # X with maximum deformation
+    CanonicalLetters.draw_X(model,
+                            cross_ratio=0.35,
+                            spread_angle=15,
+                            rotation_deg=25,
+                            asymmetry=15)
+    deformed_X = model.apply_morphology(thickness=6).copy()
+    
+    # W with maximum deformation
+    CanonicalLetters.draw_W(model,
+                            peak_depth=0.85,
+                            width_factor=1.3,
+                            middle_height=0.35,
+                            shear_x=20)
+    deformed_W = model.apply_morphology(thickness=6).copy()
+    
+    return {'A': deformed_A, 'B': deformed_B, 'C': deformed_C, 
+            'F': deformed_F, 'X': deformed_X, 'W': deformed_W}
 
 # ==========================================
 # SSIM Matrix Creation
@@ -96,17 +131,16 @@ def compare_original_letters(base_letters, output_dir):
     
     original_matrix = create_ssim_matrix(base_letters)
 
-    # Create Visualization
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     fig.suptitle("Inter-letter Comparison: Original Letters (SSIM)", fontsize=16)
 
     # Images
     axes[0].axis('off')
     axes[0].set_title("Original Letters", fontsize=14, fontweight='bold')
     for idx, letter in enumerate(letters):
-        ax_small = fig.add_axes([0.08 + idx*0.11, 0.25, 0.09, 0.5])
+        ax_small = fig.add_axes([0.05 + idx*0.065, 0.25, 0.055, 0.5])
         ax_small.imshow(base_letters[letter], cmap='gray')
-        ax_small.set_title(f"{letter}", fontsize=14, fontweight='bold')
+        ax_small.set_title(f"{letter}", fontsize=12, fontweight='bold')
         ax_small.axis('off')
 
     # Matrix
@@ -114,11 +148,11 @@ def compare_original_letters(base_letters, output_dir):
     axes[1].set_title("SSIM Matrix - Original", fontsize=14)
     axes[1].set_xticks(range(n))
     axes[1].set_yticks(range(n))
-    axes[1].set_xticklabels(letters, fontsize=12)
-    axes[1].set_yticklabels(letters, fontsize=12)
+    axes[1].set_xticklabels(letters, fontsize=10)
+    axes[1].set_yticklabels(letters, fontsize=10)
     for i in range(n):
         for j in range(n):
-            axes[1].text(j, i, f'{original_matrix[i,j]:.2f}', ha='center', va='center', fontsize=12, fontweight='bold')
+            axes[1].text(j, i, f'{original_matrix[i,j]:.2f}', ha='center', va='center', fontsize=9, fontweight='bold')
     plt.colorbar(im, ax=axes[1])
     
     plt.tight_layout()
@@ -142,17 +176,16 @@ def compare_deformed_letters(deformed_letters, output_dir):
     
     deformed_matrix = create_ssim_matrix(deformed_letters)
 
-    # Create Visualization
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     fig.suptitle("Inter-letter Comparison: Max Deformed Letters (SSIM)", fontsize=16)
 
     # Images
     axes[0].axis('off')
     axes[0].set_title("Max Deformed Letters", fontsize=14, fontweight='bold')
     for idx, letter in enumerate(letters):
-        ax_small = fig.add_axes([0.08 + idx*0.11, 0.25, 0.09, 0.5])
+        ax_small = fig.add_axes([0.05 + idx*0.065, 0.25, 0.055, 0.5])
         ax_small.imshow(deformed_letters[letter], cmap='gray')
-        ax_small.set_title(f"{letter}'", fontsize=14, fontweight='bold')
+        ax_small.set_title(f"{letter}'", fontsize=12, fontweight='bold')
         ax_small.axis('off')
 
     # Matrix
@@ -160,11 +193,11 @@ def compare_deformed_letters(deformed_letters, output_dir):
     axes[1].set_title("SSIM Matrix - Max Deformed", fontsize=14)
     axes[1].set_xticks(range(n))
     axes[1].set_yticks(range(n))
-    axes[1].set_xticklabels([f"{l}'" for l in letters], fontsize=12)
-    axes[1].set_yticklabels([f"{l}'" for l in letters], fontsize=12)
+    axes[1].set_xticklabels([f"{l}'" for l in letters], fontsize=10)
+    axes[1].set_yticklabels([f"{l}'" for l in letters], fontsize=10)
     for i in range(n):
         for j in range(n):
-            axes[1].text(j, i, f'{deformed_matrix[i,j]:.2f}', ha='center', va='center', fontsize=12, fontweight='bold')
+            axes[1].text(j, i, f'{deformed_matrix[i,j]:.2f}', ha='center', va='center', fontsize=9, fontweight='bold')
     plt.colorbar(im, ax=axes[1])
     
     plt.tight_layout()
@@ -185,7 +218,7 @@ def run_inter_letter_analysis(output_dir='analysis'):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    print("🚀 Starting Inter-letter Analysis...")
+    print("🚀 Starting Inter-letter Analysis (A, B, C, F, X, W)...")
 
     # Create Letters
     base_letters = create_base_letters()

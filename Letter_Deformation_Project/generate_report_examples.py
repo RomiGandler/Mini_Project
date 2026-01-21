@@ -8,12 +8,20 @@ from src.param_config import PARAM_CONFIG
 OUTPUT_DIR = "results/report_examples"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+DRAW_FUNCS = {
+    'A': CanonicalLetters.draw_A,
+    'B': CanonicalLetters.draw_B,
+    'C': CanonicalLetters.draw_C,
+    'F': CanonicalLetters.draw_F,
+    'X': CanonicalLetters.draw_X,
+    'W': CanonicalLetters.draw_W,
+}
+
 def save_example(letter, param_name, param_value, filename):
     """
     Generates and saves a letter image with a single modified parameter.
     Used for creating visual examples for the methodology section.
     """
-    # Initialize the skeleton model
     model = LetterSkeleton(size=(200, 200))
     
     # Load default parameters from the central configuration
@@ -23,12 +31,7 @@ def save_example(letter, param_name, param_value, filename):
     params[param_name] = param_value
     
     # Draw the specific letter based on the input char
-    if letter == 'A':
-        CanonicalLetters.draw_A(model, **params)
-    elif letter == 'B':
-        CanonicalLetters.draw_B(model, **params)
-    elif letter == 'C':
-        CanonicalLetters.draw_C(model, **params)
+    DRAW_FUNCS[letter](model, **params)
         
     # Apply morphology (thickness) to get the final raster image
     img = model.apply_morphology(thickness=params['thickness'])
@@ -49,29 +52,37 @@ if __name__ == "__main__":
     print("Generating visual examples for the report...")
 
     # --- Letter A Examples ---
-    # 1. Strong Shear (Tilt)
     save_example('A', 'shear_x', 30, "A_shear.png")
-    # 2. Significant Widening
     save_example('A', 'base_width_factor', 1.6, "A_width.png")
-    # 3. Lower Crossbar position
     save_example('A', 'crossbar_h_shift', 30, "A_crossbar.png")
-    # 4. Wide Top (Flat head A)
     save_example('A', 'top_width', 60, "A_top_width.png")
 
     # --- Letter B Examples ---
-    # 1. Vertical Squash (Flattening)
     save_example('B', 'vertical_squash', 0.6, "B_squash.png")
-    # 2. High Waist (Shifted middle intersection)
-    save_example('B', 'waist_y_shift', -30, "B_waist.png")
-    # 3. Rotation
+    save_example('B', 'waist_y_shift', -25, "B_waist.png")
     save_example('B', 'rotation_deg', 15, "B_rotation.png")
 
     # --- Letter C Examples ---
-    # 1. Closed Shape (Almost like 'O')
     save_example('C', 'cut_top', -10, "C_closed.png")
-    # 2. Wide Opening
     save_example('C', 'cut_top', 70, "C_open.png")
-    # 3. Vertical Squash
     save_example('C', 'vertical_squash', 0.6, "C_squash.png")
+
+    # --- Letter F Examples ---
+    save_example('F', 'bar_length', 1.4, "F_bar_long.png")
+    save_example('F', 'bar_length', 0.6, "F_bar_short.png")
+    save_example('F', 'middle_bar_shift', 25, "F_mid_down.png")
+    save_example('F', 'shear_x', 25, "F_shear.png")
+
+    # --- Letter X Examples ---
+    save_example('X', 'cross_ratio', 0.35, "X_cross_high.png")
+    save_example('X', 'cross_ratio', 0.65, "X_cross_low.png")
+    save_example('X', 'spread_angle', 15, "X_spread.png")
+    save_example('X', 'rotation_deg', 25, "X_rotation.png")
+
+    # --- Letter W Examples ---
+    save_example('W', 'peak_depth', 0.85, "W_deep.png")
+    save_example('W', 'peak_depth', 0.4, "W_shallow.png")
+    save_example('W', 'width_factor', 1.3, "W_wide.png")
+    save_example('W', 'middle_height', 0.35, "W_mid_low.png")
     
     print(f"\nDone! Please check the folder: {OUTPUT_DIR}")

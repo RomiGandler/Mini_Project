@@ -67,27 +67,45 @@ def analyze_single_letter(letter_char, draw_func, param_name, param_range, defau
     print(f"Saved graph to: {output_path}")
 
 # ==========================================
-# Configuration
+# Configuration (now including F, X, W)
 # ==========================================
 
 CONFIG = {
     'A': {
         'func': CanonicalLetters.draw_A,
         'param': 'shear_x',
-        'range': np.linspace(0, 35, 20), # check shear from 0 to 35 degrees
+        'range': np.linspace(0, 35, 20),
         'defaults': {'base_width_factor': 1.0, 'top_width': 0, 'crossbar_h_shift': 0, 'shear_x': 0, 'thickness': 6}
     },
     'B': {
         'func': CanonicalLetters.draw_B,
         'param': 'vertical_squash',
-        'range': np.linspace(0.5, 1.0, 20), # check squash from 0.5 to 1.0
+        'range': np.linspace(0.5, 1.0, 20),
         'defaults': {'width_factor': 1.0, 'waist_y_shift': 0, 'rotation_deg': 0, 'vertical_squash': 1.0, 'thickness': 6}
     },
     'C': {
         'func': CanonicalLetters.draw_C,
         'param': 'cut_top',
-        'range': np.linspace(-60, 40, 20), # check cut_top from -60 to 40
+        'range': np.linspace(-60, 40, 20),
         'defaults': {'cut_top': 40, 'vertical_squash': 1.0, 'rotation_deg': 0, 'thickness': 6}
+    },
+    'F': {
+        'func': CanonicalLetters.draw_F,
+        'param': 'bar_length',
+        'range': np.linspace(0.5, 1.5, 20),
+        'defaults': {'bar_length': 1.0, 'middle_bar_shift': 0, 'shear_x': 0, 'spine_height': 1.0, 'thickness': 6}
+    },
+    'X': {
+        'func': CanonicalLetters.draw_X,
+        'param': 'cross_ratio',
+        'range': np.linspace(0.3, 0.7, 20),
+        'defaults': {'cross_ratio': 0.5, 'spread_angle': 0, 'rotation_deg': 0, 'asymmetry': 0, 'thickness': 6}
+    },
+    'W': {
+        'func': CanonicalLetters.draw_W,
+        'param': 'peak_depth',
+        'range': np.linspace(0.3, 0.9, 20),
+        'defaults': {'peak_depth': 0.7, 'width_factor': 1.0, 'middle_height': 0.5, 'shear_x': 0, 'thickness': 6}
     }
 }
 
@@ -96,7 +114,7 @@ CONFIG = {
 # ==========================================
 
 if __name__ == "__main__":
-    print("--- Starting Full Analysis ---")
+    print("--- Starting Full Analysis (A, B, C, F, X, W) ---")
     
     for letter, conf in CONFIG.items():
         analyze_single_letter(
